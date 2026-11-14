@@ -230,6 +230,37 @@ fn main() {
         );
         println!("menu_services: menus changing only their items' titles and states keep the bar");
 
+        // The key-only menu never shows: a key of its turning on or off keeps
+        // the bar, unless it takes a key zgx's own zoom items would have.
+        let keyed = |key: Option<&str>| {
+            let item = AppMenuEntry::item("Close Peek", "close_peek");
+            [
+                AppMenu::new("View", [AppMenuEntry::item("Sidebar", "sidebar")]),
+                AppMenu::new(
+                    zgx_desktop::KEY_ONLY_MENU,
+                    [match key {
+                        Some(key) => {
+                            item.accelerator(MenuAccelerator::primary(Key::Character(key.into())))
+                        }
+                        None => item,
+                    }],
+                ),
+            ]
+        };
+        let zgx_desktop::app_menu::MenuChange { in_place, kept, .. } =
+            debug_menu_change(&keyed(None), &keyed(Some("j"))).unwrap();
+        assert!(
+            in_place && kept,
+            "a key-only key redrew the bar: in place {in_place}, kept {kept}"
+        );
+        let zgx_desktop::app_menu::MenuChange { in_place, .. } =
+            debug_menu_change(&keyed(None), &keyed(Some("="))).unwrap();
+        assert!(
+            !in_place,
+            "a key-only zoom key left zgx's zoom items in View"
+        );
+        println!("menu_services: the key-only menu's keys keep the bar");
+
         // A bar AppKit can't make (here two items on one key, as
         // `set_menus` never passes on) is said, and the last good bar
         // stays: no exit, no empty bar.

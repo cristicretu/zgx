@@ -958,10 +958,13 @@ pub(crate) struct NativeMenu {
     /// The model it shows.
     model: Vec<AppMenu>,
 }
-/// `menus` with every item untitled, enabled and unchecked: two models of one
-/// shape differ only in their items' titles and states.
+/// What the bar shows of `menus`: each shown menu with its items untitled,
+/// enabled and unchecked, and whether zgx's own find and zoom items join
+/// Edit and View. Two models of one shape differ only in their items'
+/// titles and states. The key-only menu never shows: a key of its turning
+/// on or off changes the bar only when it takes or frees a find or zoom key.
 #[cfg(target_os = "macos")]
-fn shape(menus: &[AppMenu]) -> Vec<AppMenu> {
+fn shape(menus: &[AppMenu]) -> (Vec<AppMenu>, bool, bool) {
     fn plain(menu: &AppMenu) -> AppMenu {
         AppMenu {
             label: menu.label.clone(),
@@ -987,7 +990,15 @@ fn shape(menus: &[AppMenu]) -> Vec<AppMenu> {
                 .collect(),
         }
     }
-    menus.iter().map(plain).collect()
+    (
+        menus
+            .iter()
+            .filter(|menu| menu.label != KEY_ONLY_MENU)
+            .map(plain)
+            .collect(),
+        binds_find_keys(menus),
+        binds_zoom_keys(menus),
+    )
 }
 #[cfg(target_os = "macos")]
 impl NativeMenu {
