@@ -6849,7 +6849,7 @@ impl Ui {
                             border_color: mark.border_color,
                             border_width: mark.border_width,
                             shadow: None,
-                            decoration: None,
+                            decoration: mark.decoration.clone(),
                             border_over: false,
                             outline: None,
                         };
